@@ -36,7 +36,7 @@ public class Cliente extends Thread {
     System.out.printf("Cliente %d: 'Terminei de consumir meu pedido :)'\n",idCliente);
 
     //20% de chance de já estar satisfeito
-    if (taSatisfeito<0.20){
+    if (Math.random()<0.20){
       satisfeito=true;
     }
   }
