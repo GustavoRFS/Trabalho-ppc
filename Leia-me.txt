@@ -1,3 +1,5 @@
+Todos os tempos do programa leva em consideração que 1 segundo no programa representa 1 minuto da vida real.
+
 Foi adicionada uma lógica para limitar a quantidade de clientes, que é calculada da seguinte forma:
   capacidade de atendimentos * número de rodadas
 Essa lógica foi adicionada para evitar que clientes fiquem esperando para serem atendidos, sendo que
