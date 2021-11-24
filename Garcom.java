@@ -11,20 +11,75 @@ public class Garcom extends Thread {
     pedidosClientes=new LinkedList<Cliente>();
   }
 
-  private void recebeERegistraPedidos() throws InterruptedException{
-    for (int i=0;i<dados.capAtendimento;i++){
-      if (dados.filaDeClientes.size()>0){
-        Cliente clienteAtual;
-        synchronized (pedidosClientes){
-          clienteAtual=dados.filaDeClientes.poll();
-          pedidosClientes.add(clienteAtual);
-        }
-        
-        System.out.printf("Garçom %d: 'Atendendo o cliente %d'\n",idGarcom,clienteAtual.idCliente);
+  @Override
+  public String toString(){
+    return String.format("Garcom %d", idGarcom);
+  }
 
-        sleep(1000); //Leva 1 minuto (1 segundo no programa) para registrar um pedido
+  private void despedirCliente(Cliente cliente){
+    System.out.printf("Garçom %d: 'Despedindo cliente %d :('\n",idGarcom,cliente.idCliente);
+    synchronized (cliente){
+      cliente.notify();
+    }
+  }
+
+  private void fecharBar(){
+    int quantidadeClientes=dados.filaDeClientes.size();
+
+    if (quantidadeClientes<dados.numGarcons){
+      if (idGarcom==1){
+        for (int i=0;i<quantidadeClientes;i++){
+          despedirCliente(dados.filaDeClientes.get(i));
+        }
+      }
+    }
+    else{
+      //Cada garçom vai despedir uma certa quantidade de clientes
+      int quantidadeADespedir=quantidadeClientes/dados.numGarcons;
       
-        System.out.printf("Garçom %d: 'Acabei de atender cliente %d'\n", idGarcom,clienteAtual.idCliente);
+      //Se a quantidade de clientes for impar, o ultimo garçom despede um cliente
+      // a mais que os outros garçons 
+      if (quantidadeClientes%2==1 && idGarcom==dados.numGarcons){
+        for (int i=(idGarcom-1)*quantidadeADespedir;i<idGarcom*quantidadeADespedir+1;i++){
+          System.out.println(i);
+          despedirCliente(dados.filaDeClientes.get(i));
+        }
+      }
+      else{
+        for (int i=(idGarcom-1)*quantidadeADespedir;i<idGarcom*quantidadeADespedir;i++){
+          System.out.println(i);
+          despedirCliente(dados.filaDeClientes.get(i));
+        }
+      }
+    }
+  }
+
+  private void recebeERegistraPedidos() throws InterruptedException{
+    int clientesASeremAtendidos;
+    synchronized(dados.capAtendimento){
+      synchronized(dados.filaDeClientes){
+        clientesASeremAtendidos=Math.min(dados.capAtendimento, dados.filaDeClientes.size());
+      }
+    }
+    
+    for (int i=0;i<clientesASeremAtendidos;i++){
+
+      sleep(1000); //Leva um minuto para registrar os pedidos dos clientes
+    
+      synchronized (dados.filaDeClientes){
+        if (dados.filaDeClientes.size()>0){
+          Cliente clienteAtual=dados.filaDeClientes.poll();
+          pedidosClientes.add(clienteAtual);
+          
+          synchronized (clienteAtual){
+            clienteAtual.notify();
+          }
+          System.out.printf("Garçom %d: 'Atendendo o cliente %d'\n",idGarcom,clienteAtual.idCliente);
+
+          sleep(1000); //Leva 1 minuto (1 segundo no programa) para registrar um pedido
+          
+          System.out.printf("Garçom %d: 'Acabei de atender cliente %d'\n", idGarcom,clienteAtual.idCliente);      
+        }
       }
     }
   }
@@ -36,15 +91,15 @@ public class Garcom extends Thread {
     //para preparar os pedidos de uma rodada de pedidos
     sleep(tempoPreparo.longValue()*1000); 
   
-    for (int i=0;i<pedidosClientes.size();i++){
-      Cliente clienteAtual;
-      synchronized(pedidosClientes){
-        clienteAtual=pedidosClientes.poll();
-      }
+    int quantidadeClientes=pedidosClientes.size();
+    
+    for (int i=0;i<quantidadeClientes;i++){
+      Cliente clienteAtual=pedidosClientes.poll();
 
-      sleep(500); //Leva 500 milissegundos para entregar o pedido para cada cliente
+      sleep(500); //Leva 0.5 minutos para entregar o pedido para cada cliente
 
       synchronized(clienteAtual){
+        System.out.printf("Garçom %d: 'Entregando o pedido para o cliente %d' \n",idGarcom,clienteAtual.idCliente);
         clienteAtual.notify();
       }
     
@@ -55,17 +110,38 @@ public class Garcom extends Thread {
   @Override
   public void run(){
     while (dados.existemClientesNoBar()){ 
-      if (dados.filaDeClientes.size()>0){   
+      int quantidadeClientes;
+      synchronized (dados.filaDeClientes){
+        quantidadeClientes=dados.filaDeClientes.size();
+      }
+      if (!dados.barEstaAberto()){
+        fecharBar();
+        return;
+      }
+      else if (quantidadeClientes>0){   
         try{
+          int rodadaAtual;
+          synchronized(dados.contadorRodadas){
+            dados.contadorRodadas++; 
+            rodadaAtual=dados.contadorRodadas;
+            System.out.printf("Garçom %d: Início da rodada %d\n",idGarcom,rodadaAtual);
+          }
           recebeERegistraPedidos();
 
           entregaPedidos(); 
 
-          synchronized(dados){
-            --dados.numRodadas;
+          System.out.printf("Garçom %d: Fim da rodada %d\n",idGarcom,rodadaAtual);
+
+          if (!dados.barEstaAberto()){
+            return;
           }
-        }catch(InterruptedException e){}  
-      } 
-    } 
+          //Aguarda entre 15 e 35 minutos para próxima rodada
+          Double tempoParaProximaRodada=Math.random()*20.0+15;
+          sleep((tempoParaProximaRodada.longValue())*1000); 
+        }catch(InterruptedException e){
+          e.printStackTrace();
+        }  
+      }
+    }
   }
 }

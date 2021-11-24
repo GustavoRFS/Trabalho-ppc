@@ -9,6 +9,7 @@ public class Dados {
   public volatile Integer numGarcons;
   public volatile Integer capAtendimento; 
   public volatile Integer numRodadas;
+  public volatile Integer contadorRodadas;
   
   public volatile LinkedList<Cliente> filaDeClientes;
 
@@ -20,13 +21,14 @@ public class Dados {
 
   public boolean barEstaAberto(){
     synchronized(numRodadas){
-      return numRodadas>0;
+      return contadorRodadas<numRodadas;
     }
   }
 
   //Padrão Singleton, onde essa classe só pode ter uma instância do programa
   //Bom para centralizar os dados que podem ser acessados por qualquer outra classe
   private Dados(){ 
+    contadorRodadas=0;
     filaDeClientes=new LinkedList<Cliente>();
   }
 

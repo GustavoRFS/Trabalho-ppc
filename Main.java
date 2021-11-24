@@ -1,8 +1,3 @@
-//TODO: Corrigir exceptions
-//TODO: Adicionar Cardápio
-//TODO: Adicionar classe de pedidos do cliente
-//TODO: Adicionar prints nos pontos necessário do codigo
-
 public class Main{
   public static void main(String[] args) {
     Dados dados=Dados.getInstance();
@@ -16,6 +11,13 @@ public class Main{
     dados.numGarcons=Integer.parseInt(args[1]);
     dados.capAtendimento=Integer.parseInt(args[2]);
     dados.numRodadas=Integer.parseInt(args[3]);
+
+    int maximoClientes=dados.capAtendimento*dados.numRodadas;
+
+    if (dados.numClientes>maximoClientes){
+      System.out.printf("O número máximo de clientes (%d) foi atingido. %d não puderam entrar no bar\n",maximoClientes,dados.numClientes-maximoClientes);
+      dados.numClientes=maximoClientes;
+    }
 
     Thread threads[]=new Thread[dados.numClientes+dados.numGarcons-1];  
 
