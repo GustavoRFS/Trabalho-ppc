@@ -1,7 +1,5 @@
 import java.util.LinkedList;
 
-import javax.swing.plaf.synth.SynthCheckBoxMenuItemUI;
-
 public class Dados {
   private static Dados instancia;
 
