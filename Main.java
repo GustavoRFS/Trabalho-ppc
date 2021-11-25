@@ -19,23 +19,16 @@ public class Main{
       dados.numClientes=maximoClientes;
     }
 
-    Thread threads[]=new Thread[dados.numClientes+dados.numGarcons-1];  
-
     for (int i=0;i<dados.numClientes;i++){
-      Cliente cliente=new Cliente(i+1);
-      cliente.start();
-      threads[i]=cliente;
+      new Cliente(i+1).start();  
     }
 
     for (int i=0;i<dados.numGarcons-1;i++){
-      Garcom garcom=new Garcom(i+1);
-      garcom.start();
-      threads[i+dados.numClientes]=garcom;
+      new Garcom(i+1).start();
     }
 
     //A thread principal também vai executar a função de garçom:
-    Garcom garcom=new Garcom(dados.numGarcons);
-    garcom.run(); 
+    new Garcom(dados.numGarcons).run();
     //O método run executa o método sobrescrito na classe sem criar uma nova thread
 
   }

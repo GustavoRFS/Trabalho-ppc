@@ -17,6 +17,7 @@ public class Cliente extends Thread {
   }
 
   private void esperaGarcomEFazPedido() throws InterruptedException{
+
     synchronized(dados.filaDeClientes){
       dados.filaDeClientes.add(this);
     }
@@ -50,10 +51,11 @@ public class Cliente extends Thread {
   }
 
   private void consomePedido() throws InterruptedException{
-    
-    Double tempoDeConsumo=Math.random()*8.0+2; //Tempo de consumo pode variar de 2 à 10 minutos
 
     System.out.printf("Cliente %d: 'Comecei a consumir meu %dº pedido :)'\n",idCliente,numPedidos);
+
+    //Tempo de consumo pode variar de 2 à 10 minutos
+    Double tempoDeConsumo=Math.random()*8.0+2; 
 
     //Nesse programa, minutos na verdade serão segundos
     sleep(tempoDeConsumo.longValue()*1000);
@@ -87,7 +89,7 @@ public class Cliente extends Thread {
     else{
       System.out.printf("Cliente %d: 'Bar já está fechando :('\n",idCliente);
     }
-    
     --dados.numClientes;
   }
 }
+

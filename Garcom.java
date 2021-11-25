@@ -74,6 +74,7 @@ public class Garcom extends Thread {
           synchronized (clienteAtual){
             clienteAtual.notify();
           }
+          
           System.out.printf("Garçom %d: 'Atendendo o cliente %d'\n",idGarcom,clienteAtual.idCliente);
 
           sleep(1000); //Leva 1 minuto (1 segundo no programa) para registrar um pedido
